@@ -162,6 +162,11 @@ then release automatically. One-time repo setup for this to work:
 You can also host the released file on any CDN you control instead. This package is
 intentionally not published to npm.
 
+## Security
+
+Found a vulnerability? See [SECURITY.md](SECURITY.md) — please report it privately
+to support@pixelunion.eu rather than opening a public issue.
+
 ## License
 
 [MIT](LICENSE)
