@@ -79,7 +79,11 @@ check('exposes window.AllQuietStatusWidget', Boolean(global1), typeof global1);
 const red = await waitFor(() => inspect(page1.mainFrame.document));
 check('renders critical popup', red?.kind === 'critical', red);
 check('headline from feed mapping', red?.headline === 'Major outage', red?.headline);
-check('shows incident title', red?.body === 'Test incident', red?.body);
+check(
+  'shows incident title',
+  red?.body === 'Authentication service outage — sign-ins are failing and active sessions may be logged out unexpectedly',
+  red?.body,
+);
 check('shows +1 more', red?.more === '+1 more', red?.more);
 check('links to status page', red?.link === 'https://allquiet.eu/status/pixelunion', red?.link);
 

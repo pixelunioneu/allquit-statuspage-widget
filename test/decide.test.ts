@@ -8,9 +8,15 @@ import maintenanceLiveJson from './fixtures/maintenance-live.json';
 import allClearJson from './fixtures/all-clear.json';
 
 // IDs from the captured fixtures (real test incidents on the PixelUnion page).
-const CRITICAL_ID = '5da3fc6c-e717-45f3-8785-fa32a4c02c81'; // "Test incident"
-const WARNING_ID = 'cbe39f28-35bf-4f5b-9d7c-51344ea29a09'; // "Testing "
-const MAINTENANCE_ID = '20fcf1e0-63ee-4627-b359-56b085e5ab8c'; // "It's hapnening. "
+const CRITICAL_ID = '5da3fc6c-e717-45f3-8785-fa32a4c02c81'; // "Authentication service outage — ..."
+const WARNING_ID = 'cbe39f28-35bf-4f5b-9d7c-51344ea29a09'; // "Increased latency and intermittent timeouts ..."
+const MAINTENANCE_ID = '20fcf1e0-63ee-4627-b359-56b085e5ab8c'; // "Scheduled maintenance on the authentication ..."
+const CRITICAL_TITLE =
+  'Authentication service outage — sign-ins are failing and active sessions may be logged out unexpectedly';
+const WARNING_TITLE =
+  'Increased latency and intermittent timeouts when uploading photos and videos in the EU region';
+const MAINTENANCE_TITLE =
+  'Scheduled maintenance on the authentication and media migration services — brief interruptions to sign-in and photo imports are expected';
 const MAINTENANCE_START = Date.parse('2026-07-18T08:43:00Z');
 const MAINTENANCE_END = Date.parse('2026-07-18T12:43:00Z');
 const STATUS_PAGE_URL = 'https://allquiet.eu/status/pixelunion';
@@ -36,7 +42,7 @@ describe('decide — incidents', () => {
     expect(state).not.toBeNull();
     expect(state!.kind).toBe('critical');
     expect(state!.headline).toBe('Major outage'); // feed's publicSeverityMappingCritical
-    expect(state!.body).toBe('Test incident');
+    expect(state!.body).toBe(CRITICAL_TITLE);
     expect(state!.detail).toBeNull();
     expect(state!.moreCount).toBe(1);
     expect(state!.linkUrl).toBe(STATUS_PAGE_URL);
@@ -66,7 +72,7 @@ describe('decide — incidents', () => {
     const state = decide(liveOutage(), new Set([CRITICAL_ID]), input());
     expect(state!.kind).toBe('warning');
     expect(state!.headline).toBe('Partial outage'); // feed's publicSeverityMappingWarning
-    expect(state!.body).toBe('Testing');
+    expect(state!.body).toBe(WARNING_TITLE);
     expect(state!.moreCount).toBe(0);
     expect(state!.ids).toEqual([WARNING_ID]);
   });
@@ -104,7 +110,7 @@ describe('decide — maintenance', () => {
     expect(state).not.toBeNull();
     expect(state!.kind).toBe('maintenance');
     expect(state!.headline).toBe(DEFAULT_STRINGS.maintenance);
-    expect(state!.body).toBe("It's hapnening.");
+    expect(state!.body).toBe(MAINTENANCE_TITLE);
     expect(state!.detail).toBe(DEFAULT_STRINGS.maintenanceInProgress);
     expect(state!.ids).toEqual([MAINTENANCE_ID]);
     expect(state!.linkUrl).toBe(STATUS_PAGE_URL);
