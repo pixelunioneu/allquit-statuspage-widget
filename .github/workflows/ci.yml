@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: # manual release trigger (e.g. after a GITHUB_TOKEN-merged PR)
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm run size
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  # Automatic releasing: every push to main becomes a patch release, versioned
+  # from git tags (no version-bump commits, so no workflow loops). Commit
+  # message markers steer it: [skip release], [release minor], [release major].
+  release:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Compute next version from tags
+        id: version
+        run: |
+          set -euo pipefail
+          msg="$(git log -1 --pretty=%B)"
+          if echo "$msg" | grep -qiF '[skip release]'; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "release skipped by commit message"
+            exit 0
+          fi
+          latest="$(git tag --list 'v*' --sort=-v:refname | head -n1)"
+          if [ -z "$latest" ]; then
+            next="$(node -p "require('./package.json').version")"
+          else
+            base="${latest#v}"
+            IFS=. read -r MA MI PA <<< "$base"
+            if echo "$msg" | grep -qiF '[release major]'; then
+              next="$((MA+1)).0.0"
+            elif echo "$msg" | grep -qiF '[release minor]'; then
+              next="$MA.$((MI+1)).0"
+            else
+              next="$MA.$MI.$((PA+1))"
+            fi
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "next=$next" >> "$GITHUB_OUTPUT"
+          echo "releasing v$next (previous: ${latest:-none})"
+
+      - name: Build with release version
+        if: steps.version.outputs.skip == 'false'
+        run: |
+          npm ci
+          WIDGET_VERSION="${{ steps.version.outputs.next }}" npm run build
+          npm run size
+
+      - name: Create tag + GitHub release with dist
+        if: steps.version.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.version.outputs.next }}" \
+            dist/allquiet-status-widget.js \
+            dist/allquiet-status-widget.js.map \
+            --title "v${{ steps.version.outputs.next }}" \
+            --generate-notes

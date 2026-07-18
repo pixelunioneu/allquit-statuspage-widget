@@ -1,0 +1,33 @@
+# Auto-merges Dependabot PRs for patch/minor updates once required checks pass.
+# Majors stay open for human review.
+#
+# Repo settings needed:
+#   - Settings → General → "Allow auto-merge" enabled
+#   - Branch protection on main requiring the "ci" check (otherwise --auto
+#     merges immediately)
+#   - Optional but recommended: add a fine-grained PAT as the AUTOMERGE_TOKEN
+#     secret. Merges made with the default GITHUB_TOKEN do not trigger other
+#     workflows, so the automatic release would not fire for those merges
+#     (fallback: run the CI workflow manually via workflow_dispatch).
+name: Dependabot auto-merge
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dependabot/fetch-metadata@v2
+        id: metadata
+
+      - name: Enable auto-merge for patch/minor updates
+        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.AUTOMERGE_TOKEN || secrets.GITHUB_TOKEN }}
+        run: gh pr merge --auto --squash "$PR_URL"

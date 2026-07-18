@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>embed example — allquiet-status-widget</title>
+</head>
+<body>
+  <h1>Plain embed example</h1>
+  <p>
+    This page embeds the widget exactly like a real website would — one script
+    tag, auto-init from <code>data-status-url</code> (here: the captured
+    live-outage fixture, so a red popup should appear).
+  </p>
+
+  <script
+    src="/dist/allquiet-status-widget.js"
+    data-status-url="/demo/fixtures/live-outage.json"
+    defer
+  ></script>
+</body>
+</html>

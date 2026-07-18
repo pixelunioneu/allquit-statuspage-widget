@@ -1,0 +1,41 @@
+# Task runner config — https://mise.jdx.dev/tasks/
+# Usage: mise run <task>        list: mise tasks
+# (Add a [tools] section here if you want to pin the node version per-project.)
+
+[tasks.install]
+description = "Install dev dependencies"
+run = "npm install"
+
+[tasks.typecheck]
+description = "TypeScript type check"
+run = "npm run typecheck"
+
+[tasks.test]
+description = "Unit tests (vitest, against captured real-feed fixtures)"
+run = "npm test"
+
+[tasks."test:watch"]
+description = "Unit tests in watch mode"
+run = "npm run test:watch"
+
+[tasks.build]
+description = "Bundle dist/allquiet-status-widget.js (minified IIFE + sourcemap)"
+run = "npm run build"
+
+[tasks.size]
+description = "Enforce the 6 KB gzip budget on the built bundle"
+depends = ["build"]
+run = "npm run size"
+
+[tasks.demo]
+description = "Serve the demo at http://localhost:4173/demo/ (all popup states + live feed)"
+depends = ["build"]
+run = "npm run demo"
+
+[tasks.check]
+description = "Everything CI runs: typecheck + tests + build + size budget"
+depends = ["typecheck", "test", "size"]
+
+[tasks.fixtures]
+description = "Capture the current live PixelUnion feed as a dated fixture"
+run = "curl -fsS https://pixelunion-status.b-cdn.net/status.json -o test/fixtures/capture-$(date +%Y%m%d-%H%M%S).json && ls -la test/fixtures/"
