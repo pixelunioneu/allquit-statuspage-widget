@@ -19,11 +19,16 @@ the status page:
 
 ```html
 <script
-  src="https://YOUR-CDN.example/allquiet-status-widget.js"
+  src="https://pixelunioneu.github.io/allquiet-status-widget/allquiet-status-widget.js"
   data-status-url="https://YOUR-PROXY.example/status.json"
   defer
 ></script>
 ```
+
+The script is served from this repo's GitHub Pages (redeployed on every release —
+see [Distribution & releases](#distribution--releases)) so no CDN setup of your own
+is required for the widget file itself. You can also mirror it onto any CDN you
+control instead.
 
 That's it. `data-status-url` must point at your AllQuiet `status.json` **via a
 CORS-enabled proxy** (see below). Everything else — the status page link, severity
@@ -132,10 +137,13 @@ Domain background lives in [CONTEXT.md](CONTEXT.md); design decisions in
 ## Distribution & releases
 
 Releasing is automatic: **every push to `main` creates a patch release** with the
-built `dist/allquiet-status-widget.js` (+ sourcemap) attached. The version is derived
-from git tags — no version-bump commits. Steer it via the commit message:
+built `dist/allquiet-status-widget.js` (+ sourcemap) attached, and the same build is
+deployed to GitHub Pages at
+`https://pixelunioneu.github.io/allquiet-status-widget/allquiet-status-widget.js`
+(always the latest release — no version pinning). The version is derived from git
+tags — no version-bump commits. Steer it via the commit message:
 
-- `[skip release]` — no release for this push
+- `[skip release]` — no release for this push (also skips the Pages deploy)
 - `[release minor]` / `[release major]` — bump that part instead of patch
 
 Dependency updates come in weekly via Dependabot (npm dev-deps grouped by
@@ -148,9 +156,11 @@ then release automatically. One-time repo setup for this to work:
    default `GITHUB_TOKEN` don't trigger the release workflow (GitHub's recursion
    guard); without the secret, trigger a release manually via *Actions → CI → Run
    workflow* after a Dependabot merge
+4. Settings → Pages → set **Source** to **GitHub Actions** (needed once for the
+   `release` job to be allowed to deploy)
 
-Host the released file on any CDN you control. This package is intentionally not
-published to npm.
+You can also host the released file on any CDN you control instead. This package is
+intentionally not published to npm.
 
 ## License
 

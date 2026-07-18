@@ -38,6 +38,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -92,3 +97,26 @@ jobs:
             dist/allquiet-status-widget.js.map \
             --title "v${{ steps.version.outputs.next }}" \
             --generate-notes
+
+      # Publishes the same build to GitHub Pages so the widget has a
+      # ready-to-use CDN URL with no external hosting required.
+      - name: Prepare Pages site
+        if: steps.version.outputs.skip == 'false'
+        run: |
+          mkdir -p _site
+          cp dist/allquiet-status-widget.js dist/allquiet-status-widget.js.map _site/
+
+      - name: Configure Pages
+        if: steps.version.outputs.skip == 'false'
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        if: steps.version.outputs.skip == 'false'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        if: steps.version.outputs.skip == 'false'
+        id: deployment
+        uses: actions/deploy-pages@v4
