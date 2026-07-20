@@ -114,7 +114,7 @@ jobs:
 
       - name: Upload Pages artifact
         if: steps.version.outputs.skip == 'false'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
